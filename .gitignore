@@ -1,0 +1,12 @@
+# Python
+**/__pycache__/
+**/*.pyc
+server/.venv/
+
+# Env
+.env
+server/.env
+
+# OS
+.DS_Store
+pyrightconfig.json
