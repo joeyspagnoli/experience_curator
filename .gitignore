@@ -10,3 +10,6 @@ server/.env
 # OS
 .DS_Store
 pyrightconfig.json
+
+# postgres
+docker/data
