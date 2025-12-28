@@ -21,6 +21,9 @@ def normalize_name(raw: str) -> str:
     # - collapse internal whitespace
     # - no control chars
     # - no path separators
+    if any(ch in raw for ch in ["\n", "\r", "\t"]):
+        raise HTTPException(status_code=400, detail="name cannot contain control chars")
+
     name = " ".join(raw.strip().split())
 
     if len(name) == 0:
@@ -28,9 +31,6 @@ def normalize_name(raw: str) -> str:
 
     if len(name) > 80:
         raise HTTPException(status_code=400, detail="name must be <= 80 characters")
-
-    if any(ch in name for ch in ["\n", "\r", "\t"]):
-        raise HTTPException(status_code=400, detail="name cannot contain control chars")
 
     if "/" in name or "\\" in name:
         raise HTTPException(status_code=400, detail="name cannot contain / or \\")
