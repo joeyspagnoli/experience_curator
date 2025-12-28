@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from .config import require, APP_ENV, PORT, DATABASE_URL
 from .middleware import TraceMiddleware
-from .db import ping
+from .db_client import ping
 
 app = FastAPI()
 app.add_middleware(TraceMiddleware)
