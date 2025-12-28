@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_connection():
+    """Open a new psycopg connection using the configured DATABASE_URL."""
     # Use explicit keyword to avoid conninfo parsing surprises.
     try:
         return psycopg.connect(conninfo=DATABASE_URL, row_factory=dict_row)  # type: ignore[arg-type]
@@ -17,10 +18,12 @@ def get_connection():
 
 
 def fetch_one(sql, params=None):
+    """Execute a query and return a single row as a dict (commits if needed)."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)
+            conn.commit()
             return cur.fetchone()
     except Exception as e:
         logger.exception("Database query failed")
@@ -30,6 +33,7 @@ def fetch_one(sql, params=None):
 
 
 def fetch_all(sql, params=None):
+    """Execute a query and return all rows as dicts."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -43,6 +47,7 @@ def fetch_all(sql, params=None):
 
 
 def fetch_k(sql, k=1, params=None):
+    """Execute a query and return at most k rows as dicts."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -56,6 +61,7 @@ def fetch_k(sql, k=1, params=None):
 
 
 def execute(sql, params=None):
+    """Execute a statement and return the affected row count."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -70,6 +76,7 @@ def execute(sql, params=None):
 
 
 def ping():
+    """Return True if a simple SELECT succeeds."""
     row = fetch_one("SELECT 1 AS ok;")
     if row is None:
         return False

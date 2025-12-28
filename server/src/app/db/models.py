@@ -74,6 +74,10 @@ class Artifact(Base):
 
     content_type: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    file_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     artifact_kind: Mapped[str] = mapped_column(Text, nullable=False)
 
     ingestion_status: Mapped[str] = mapped_column(Text, nullable=False)

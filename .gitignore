@@ -13,3 +13,6 @@ pyrightconfig.json
 
 # postgres
 docker/data
+
+# local uploads
+server/storage/

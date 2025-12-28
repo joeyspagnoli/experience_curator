@@ -7,6 +7,7 @@ logger = logging.getLogger("app")
 
 
 def _get_incoming_trace_id(scope: dict, header_name_bytes: bytes) -> Optional[str]:
+    """Extract a trace id header value from the incoming ASGI scope."""
     headers = scope.get("headers") or []
     for name, value in headers:
         if name.lower() == header_name_bytes:
@@ -18,12 +19,15 @@ def _get_incoming_trace_id(scope: dict, header_name_bytes: bytes) -> Optional[st
 
 
 class TraceMiddleware:
+    """Attach a trace id to each request and log timing and status."""
     def __init__(self, app, header_name: str = "x-trace-id") -> None:
+        """Initialize middleware with a configurable trace header name."""
         self.app = app
         self.header_name = header_name
         self.header_name_bytes = header_name.encode("latin-1")
 
     async def __call__(self, scope: dict, receive, send) -> None:
+        """Wrap request handling to inject trace id and structured logs."""
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
