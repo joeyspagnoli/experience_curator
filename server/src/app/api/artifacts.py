@@ -1,5 +1,6 @@
 import uuid
 import hashlib
+import logging
 from collections.abc import Mapping
 from typing import cast
 from pathlib import Path
@@ -8,10 +9,12 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from starlette.status import HTTP_201_CREATED, HTTP_409_CONFLICT
 
 from ..db_client import execute, fetch_all, fetch_one
+from ..ingestion import ingest_artifact
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
-ALLOWED_EXTS = {".md", ".txt", ".docx"}
+ALLOWED_EXTS = {".md", ".txt", ".docx", ".pdf"}
 MAX_BYTES = 20 * 1024 * 1024
 STORAGE_DIR = Path(__file__).resolve().parents[3] / "storage" / "artifacts"
 
@@ -139,6 +142,15 @@ async def upload_artifact(
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     storage_path = STORAGE_DIR / storage_name
     storage_path.write_bytes(content)
+    logger.info(
+        "Artifact uploaded",
+        extra={
+            "folder_id": str(folder_uuid),
+            "artifact_filename": file.filename,
+            "storage_path": str(storage_path),
+            "file_size": file_size,
+        },
+    )
 
     # Create a DB row to track this artifact and its ingestion status.
     artifact_id = uuid.uuid4()
@@ -172,11 +184,23 @@ async def upload_artifact(
         ),
     )
 
+    logger.info(
+        "Artifact row created",
+        extra={
+            "artifact_id": str(artifact_id),
+            "folder_id": str(folder_uuid),
+            "artifact_filename": file.filename,
+        },
+    )
+
+    ingest_artifact(artifact_id)
+
     # Fetch the inserted row to return a stable response payload.
     row = fetch_one(
         """
         SELECT id, folder_id, filename, storage_path, content_type, artifact_kind,
-               ingestion_status, file_hash, file_size, created_at
+               ingestion_status, ingestion_stage, error_message, extracted_text_preview,
+               file_hash, file_size, chunker_name, chunker_params, embed_model, created_at
         FROM artifacts
         WHERE id = %s;
         """,

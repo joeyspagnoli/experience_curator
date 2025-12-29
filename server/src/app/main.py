@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, HTTPException, status
 
 from .config import APP_ENV
@@ -5,6 +7,8 @@ from .middleware import TraceMiddleware
 from .db_client import ping
 from .api.folders import router as folders_router
 from .api.artifacts import router as artifacts_router
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 app.add_middleware(TraceMiddleware)
@@ -31,3 +35,14 @@ async def check_db():
             detail="Database ping failed",
         )
     return {"ok": True}
+
+
+@app.get(
+    "/debug/search",
+    description="Placeholder endpoint for vector search debugging.",
+)
+async def debug_search(q: str, k: int = 5):
+    """Embed the query, run vector search, and return top-k chunks with scores."""
+    _ = q
+    _ = k
+    raise NotImplementedError("Debug search is not implemented yet")

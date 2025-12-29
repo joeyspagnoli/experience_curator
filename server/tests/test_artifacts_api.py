@@ -10,6 +10,7 @@ from app.main import app
 from app.api import artifacts as artifacts_api
 
 
+# Test client for route-level assertions.
 client = TestClient(app)
 
 
@@ -82,6 +83,7 @@ def test_upload_unsupported_extension(monkeypatch):
     """Upload rejects unsupported extensions."""
     def fake_fetch_one(sql, params=None):
         if "FROM folders" in sql:
+            assert params is not None
             return {"id": params[0]}
         return None
 
@@ -91,7 +93,7 @@ def test_upload_unsupported_extension(monkeypatch):
     resp = client.post(
         "/artifacts/upload",
         data={"folder_id": folder_id},
-        files={"file": ("note.pdf", file_bytes, "application/pdf")},
+        files={"file": ("note.exe", file_bytes, "application/octet-stream")},
     )
     assert resp.status_code == 400
 
@@ -100,6 +102,7 @@ def test_upload_too_large(monkeypatch):
     """Upload rejects files larger than MAX_BYTES."""
     def fake_fetch_one(sql, params=None):
         if "FROM folders" in sql:
+            assert params is not None
             return {"id": params[0]}
         return None
 
@@ -119,6 +122,7 @@ def test_upload_duplicate(monkeypatch):
     """Upload returns 409 when a duplicate artifact exists in the folder."""
     def fake_fetch_one(sql, params=None):
         if "FROM folders" in sql:
+            assert params is not None
             return {"id": params[0]}
         if "file_hash" in sql:
             return {"id": str(uuid.uuid4())}
@@ -140,6 +144,7 @@ def test_upload_success_saves_and_returns_row(monkeypatch, tmp_path):
     captured = {}
 
     def fake_execute(sql, params=None):
+        assert params is not None
         captured["artifact_id"] = params[0]
         captured["storage_path"] = params[3]
         captured["file_hash"] = params[5]
@@ -147,8 +152,10 @@ def test_upload_success_saves_and_returns_row(monkeypatch, tmp_path):
 
     def fake_fetch_one(sql, params=None):
         if "FROM folders" in sql:
+            assert params is not None
             return {"id": params[0]}
         if "WHERE id = %s" in sql:
+            assert params is not None
             return {
                 "id": str(captured["artifact_id"]),
                 "folder_id": str(params[0]),
@@ -168,6 +175,7 @@ def test_upload_success_saves_and_returns_row(monkeypatch, tmp_path):
     monkeypatch.setattr(artifacts_api, "fetch_one", fake_fetch_one)
     monkeypatch.setattr(artifacts_api, "execute", fake_execute)
     monkeypatch.setattr(artifacts_api, "STORAGE_DIR", tmp_path)
+    monkeypatch.setattr(artifacts_api, "ingest_artifact", lambda _artifact_id: None)
 
     file_bytes = io.BytesIO(b"hello")
     folder_id = str(uuid.uuid4())

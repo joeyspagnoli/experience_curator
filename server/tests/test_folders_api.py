@@ -9,6 +9,7 @@ from app.main import app
 from app.api import folders as folders_api
 
 
+# Test client for route-level assertions.
 client = TestClient(app)
 
 
@@ -62,6 +63,7 @@ def test_create_folder_normalizes_and_returns_row(monkeypatch):
     captured = {}
 
     def fake_fetch_one(sql, params=None):
+        assert params is not None
         captured["params"] = params
         return {"id": str(params[0]), "name": params[1], "created_at": "2025-01-01T00:00:00Z"}
 

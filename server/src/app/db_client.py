@@ -1,4 +1,6 @@
 import logging
+from contextlib import contextmanager
+
 import psycopg
 from psycopg.rows import dict_row
 
@@ -71,6 +73,57 @@ def execute(sql, params=None):
     except Exception as e:
         logger.exception("Database execution failed")
         raise RuntimeError(f"Database execution failed: {e}") from e
+    finally:
+        conn.close()
+
+
+def execute_many(sql, params_seq):
+    """Execute a statement for many parameter sets and return affected row count."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.executemany(sql, params_seq)
+            conn.commit()
+            return cur.rowcount
+    except Exception as e:
+        logger.exception("Database execution failed")
+        raise RuntimeError(f"Database execution failed: {e}") from e
+    finally:
+        conn.close()
+
+
+def fetch_value(sql, params=None):
+    """Execute a query and return the first column of the first row."""
+    row = fetch_one(sql, params)
+    if row is None:
+        return None
+    if isinstance(row, dict):
+        for value in row.values():
+            return value
+        return None
+    return row[0]
+
+
+def fetch_one_required(sql, params=None):
+    """Execute a query and return a single row, raising if none found."""
+    row = fetch_one(sql, params)
+    if row is None:
+        raise RuntimeError("Database query returned no rows")
+    return row
+
+
+@contextmanager
+def transaction():
+    """Yield a cursor inside a transaction (commit on success, rollback on error)."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            yield cur
+            conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.exception("Database transaction failed")
+        raise RuntimeError(f"Database transaction failed: {e}") from e
     finally:
         conn.close()
 
