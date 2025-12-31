@@ -19,6 +19,7 @@ from .services.embed import EmbeddingError, embed_texts
 
 logger = logging.getLogger(__name__)
 
+
 def _update_artifact(artifact_id, **fields: Any) -> None:
     """Update artifact columns for a single artifact id."""
     if not fields:
@@ -59,10 +60,10 @@ def embed_chunks(chunks):
     model_name = meta.get("model_name")
     model_version = meta.get("model_version")
     params = []
-    for chunk, vector in zip(chunks, embeddings, strict=True):
+    for chunked, vector in zip(chunks, embeddings, strict=True):
         params.append(
             (
-                chunk["chunk_id"],
+                chunked["chunk_id"],
                 vector,
                 model_name,
                 model_version,
@@ -202,7 +203,10 @@ def ingest_artifact(artifact_id) -> None:
         embed_meta = embed_chunks(chunk_rows)
         logger.info(
             "Embedding completed",
-            extra={"artifact_id": str(artifact_id), "model": embed_meta.get("model_name")},
+            extra={
+                "artifact_id": str(artifact_id),
+                "model": embed_meta.get("model_name"),
+            },
         )
         if embed_meta.get("model_name"):
             _update_artifact(

@@ -21,6 +21,7 @@ def normalize_name(raw: str) -> str:
     # - collapse internal whitespace
     # - no control chars
     # - no path separators
+    # TODO: when nested folders exist, validate parent_id and expand retrieval scope to include descendants.
     if any(ch in raw for ch in ["\n", "\r", "\t"]):
         raise HTTPException(status_code=400, detail="name cannot contain control chars")
 

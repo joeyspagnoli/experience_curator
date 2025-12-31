@@ -7,6 +7,13 @@ from .middleware import TraceMiddleware
 from .db_client import ping
 from .api.folders import router as folders_router
 from .api.artifacts import router as artifacts_router
+from .api.retrieval import router as retrieval_router
+from .api.ask import router as ask_router
+from .api.resume_tailor import router as resume_tailor_router
+from .api.experience_map import router as experience_map_router
+from .api.repo_map import router as repo_map_router
+from .api.chunks import router as chunks_router
+from .api.runs import router as runs_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -14,6 +21,13 @@ app = FastAPI()
 app.add_middleware(TraceMiddleware)
 app.include_router(folders_router)
 app.include_router(artifacts_router)
+app.include_router(retrieval_router)
+app.include_router(ask_router)
+app.include_router(resume_tailor_router)
+app.include_router(experience_map_router)
+app.include_router(repo_map_router)
+app.include_router(chunks_router)
+app.include_router(runs_router)
 
 
 @app.get("/", description="Basic root response for quick sanity checks.")
@@ -35,14 +49,3 @@ async def check_db():
             detail="Database ping failed",
         )
     return {"ok": True}
-
-
-@app.get(
-    "/debug/search",
-    description="Placeholder endpoint for vector search debugging.",
-)
-async def debug_search(q: str, k: int = 5):
-    """Embed the query, run vector search, and return top-k chunks with scores."""
-    _ = q
-    _ = k
-    raise NotImplementedError("Debug search is not implemented yet")

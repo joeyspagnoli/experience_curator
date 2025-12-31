@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 import psycopg
 from psycopg.rows import dict_row
+from pgvector.psycopg import register_vector
 
 from .config import DATABASE_URL
 
@@ -13,7 +14,10 @@ def get_connection():
     """Open a new psycopg connection using the configured DATABASE_URL."""
     # Use explicit keyword to avoid conninfo parsing surprises.
     try:
-        return psycopg.connect(conninfo=DATABASE_URL, row_factory=dict_row)  # type: ignore[arg-type]
+        conn = psycopg.connect(conninfo=DATABASE_URL, row_factory=dict_row)  # type: ignore[arg-type]
+        # Ensure pgvector parameters/columns adapt correctly (list[float] <-> vector).
+        register_vector(conn)
+        return conn
     except Exception as e:
         logger.exception("Database connection failed")
         raise RuntimeError(f"Database connection failed: {e}") from e
