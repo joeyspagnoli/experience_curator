@@ -153,102 +153,104 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
         </div>
       </header>
 
-      {loading && <div className="empty-state">Loading run…</div>}
-      {error && <div className="empty-state error">{error}</div>}
+      <div className="pane-scroll">
+        {loading && <div className="empty-state">Loading run…</div>}
+        {error && <div className="empty-state error">{error}</div>}
 
-      {run && !loading && !error && (
-        <>
-          <section className="card section">
-            <div className="section-title">Run summary</div>
-            <div className="meta-grid">
-              <div>
-                <div className="muted">Scope</div>
-                <div>{scopeLabel}</div>
-              </div>
-              <div>
-                <div className="muted">Citations</div>
-                <div>{run.citations_mode ?? 'on'}</div>
-              </div>
-              <div>
-                <div className="muted">Verification</div>
-                <div className={`badge badge--${verificationStatus}`}>{verificationStatus}</div>
-              </div>
-              <div>
-                <div className="muted">Reason</div>
-                <div>{verification?.reason ?? 'No verification data'}</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="card section">
-            <div className="section-title">Evidence</div>
-            {run.retrieved && run.retrieved.length > 0 ? (
-              <div className="table">
-                <div className="table-row table-row--header">
-                  <div className="muted">Chunk</div>
-                  <div className="muted">Score</div>
-                  <div className="muted">Path</div>
-                  <div className="muted">Snippet</div>
-                  <div className="muted">Open</div>
+        {run && !loading && !error && (
+          <>
+            <section className="card section">
+              <div className="section-title">Run summary</div>
+              <div className="meta-grid">
+                <div>
+                  <div className="muted">Scope</div>
+                  <div>{scopeLabel}</div>
                 </div>
-                {run.retrieved.map((chunk) => (
-                  <div key={chunk.chunk_id} className="table-row">
-                    <div className="mono">{chunk.chunk_id.slice(0, 8)}</div>
-                    <div>{chunk.score.toFixed(3)}</div>
-                    <div
-                      className="path-label"
-                      title={chunk.artifact_filename ?? chunk.artifact_path ?? '—'}
-                    >
-                      {evidenceLabel(chunk.artifact_filename, chunk.artifact_path)}
-                    </div>
-                    <div className="muted">{clampText(chunk.snippet ?? '', 120)}</div>
-                    <button
-                      type="button"
-                      className="link"
-                      onClick={() => setChunkModalId(chunk.chunk_id)}
-                    >
-                      View
-                    </button>
+                <div>
+                  <div className="muted">Citations</div>
+                  <div>{run.citations_mode ?? 'on'}</div>
+                </div>
+                <div>
+                  <div className="muted">Verification</div>
+                  <div className={`badge badge--${verificationStatus}`}>{verificationStatus}</div>
+                </div>
+                <div>
+                  <div className="muted">Reason</div>
+                  <div>{verification?.reason ?? 'No verification data'}</div>
+                </div>
+              </div>
+            </section>
+
+            <section className="card section">
+              <div className="section-title">Evidence</div>
+              {run.retrieved && run.retrieved.length > 0 ? (
+                <div className="table">
+                  <div className="table-row table-row--header">
+                    <div className="muted">Chunk</div>
+                    <div className="muted">Score</div>
+                    <div className="muted">Path</div>
+                    <div className="muted">Snippet</div>
+                    <div className="muted">Open</div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                No retrieved chunks yet. Upload more artifacts or widen the scope.
-              </div>
-            )}
-            {indexLoading && <div className="muted">Indexing folders…</div>}
-          </section>
+                  {run.retrieved.map((chunk) => (
+                    <div key={chunk.chunk_id} className="table-row">
+                      <div className="mono">{chunk.chunk_id.slice(0, 8)}</div>
+                      <div>{chunk.score.toFixed(3)}</div>
+                      <div
+                        className="path-label"
+                        title={chunk.artifact_filename ?? chunk.artifact_path ?? '—'}
+                      >
+                        {evidenceLabel(chunk.artifact_filename, chunk.artifact_path)}
+                      </div>
+                      <div className="muted">{clampText(chunk.snippet ?? '', 120)}</div>
+                      <button
+                        type="button"
+                        className="link"
+                        onClick={() => setChunkModalId(chunk.chunk_id)}
+                      >
+                        View
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  No retrieved chunks yet. Upload more artifacts or widen the scope.
+                </div>
+              )}
+              {indexLoading && <div className="muted">Indexing folders…</div>}
+            </section>
 
-          <section className="card section">
-            <div className="section-title">Citations</div>
-            {run.citations && run.citations.length > 0 ? (
-              <ul className="citation-list">
-                {run.citations.map((citation) => (
-                  <li key={citation.chunk_id}>
-                    <button
-                      type="button"
-                      className="link"
-                      onClick={() => setChunkModalId(citation.chunk_id)}
-                    >
-                      {citation.chunk_id}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="empty-state">No citations recorded.</div>
-            )}
-          </section>
+            <section className="card section">
+              <div className="section-title">Citations</div>
+              {run.citations && run.citations.length > 0 ? (
+                <ul className="citation-list">
+                  {run.citations.map((citation) => (
+                    <li key={citation.chunk_id}>
+                      <button
+                        type="button"
+                        className="link"
+                        onClick={() => setChunkModalId(citation.chunk_id)}
+                      >
+                        {citation.chunk_id}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="empty-state">No citations recorded.</div>
+              )}
+            </section>
 
-          <section className="card section">
-            <details>
-              <summary className="section-title">Raw JSON</summary>
-              <pre className="code-block">{JSON.stringify(run, null, 2)}</pre>
-            </details>
-          </section>
-        </>
-      )}
+            <section className="card section">
+              <details>
+                <summary className="section-title">Raw JSON</summary>
+                <pre className="code-block">{JSON.stringify(run, null, 2)}</pre>
+              </details>
+            </section>
+          </>
+        )}
+      </div>
 
       {chunkModalId && (
         <ChunkViewer chunkId={chunkModalId} onClose={() => setChunkModalId(null)} />

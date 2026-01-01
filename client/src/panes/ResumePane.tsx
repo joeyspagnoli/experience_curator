@@ -9,28 +9,30 @@ export function ResumePane() {
         </div>
       </header>
 
-      <div className="card form-stack">
-        <label className="field">
-          <span>Source bullet (from your artifacts)</span>
-          <textarea
-            rows={6}
-            placeholder="Paste a grounded bullet to refine..."
-            disabled
-          />
-        </label>
+      <div className="pane-scroll">
+        <div className="card form-stack">
+          <label className="field">
+            <span>Source bullet (from your artifacts)</span>
+            <textarea
+              rows={6}
+              placeholder="Paste a grounded bullet to refine..."
+              disabled
+            />
+          </label>
 
-        <label className="field">
-          <span>Target role context</span>
-          <textarea
-            rows={6}
-            placeholder="Paste a job description or role focus..."
-            disabled
-          />
-        </label>
+          <label className="field">
+            <span>Target role context</span>
+            <textarea
+              rows={6}
+              placeholder="Paste a job description or role focus..."
+              disabled
+            />
+          </label>
 
-        <button type="button" className="button button--ghost" disabled>
-          Coming soon
-        </button>
+          <button type="button" className="button button--ghost" disabled>
+            Coming soon
+          </button>
+        </div>
       </div>
     </div>
   )

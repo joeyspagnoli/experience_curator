@@ -150,63 +150,65 @@ export function LibraryPane({ onTraceCapture }: LibraryPaneProps) {
         </button>
       </header>
 
-      <section className="card section">
-        <div className="section-title">Folders</div>
-        {foldersLoading ? (
-          <SkeletonRows count={3} />
-        ) : foldersError ? (
-          <div className="empty-state error">{foldersError}</div>
-        ) : folders.length === 0 ? (
-          <div className="empty-state">Create your first folder to begin.</div>
-        ) : (
-          <FolderList
-            folders={folders}
-            selectedId={selectedFolderId}
-            onSelect={setSelectedFolderId}
-          />
-        )}
+      <div className="pane-scroll">
+        <section className="card section">
+          <div className="section-title">Folders</div>
+          {foldersLoading ? (
+            <SkeletonRows count={3} />
+          ) : foldersError ? (
+            <div className="empty-state error">{foldersError}</div>
+          ) : folders.length === 0 ? (
+            <div className="empty-state">Create your first folder to begin.</div>
+          ) : (
+            <FolderList
+              folders={folders}
+              selectedId={selectedFolderId}
+              onSelect={setSelectedFolderId}
+            />
+          )}
 
-        <div className="inline-form">
-          <input
-            type="text"
-            value={createName}
-            placeholder="New folder name"
-            onChange={(event) => setCreateName(event.target.value)}
-          />
-          <button type="button" className="button" onClick={handleCreateFolder}>
-            Create
-          </button>
-        </div>
-      </section>
+          <div className="inline-form">
+            <input
+              type="text"
+              value={createName}
+              placeholder="New folder name"
+              onChange={(event) => setCreateName(event.target.value)}
+            />
+            <button type="button" className="button" onClick={handleCreateFolder}>
+              Create
+            </button>
+          </div>
+        </section>
 
-      <section className="card section">
-        <div className="section-title">Upload</div>
-        {!selectedFolderId ? (
-          <div className="empty-state">Select a folder to upload artifacts.</div>
-        ) : (
-          <UploadArtifactForm uploading={uploading} onUpload={handleUpload} />
-        )}
-        {uploadError && <div className="empty-state error">{uploadError}</div>}
-      </section>
+        <section className="card section">
+          <div className="section-title">Upload</div>
+          {!selectedFolderId ? (
+            <div className="empty-state">Select a folder to upload artifacts.</div>
+          ) : (
+            <UploadArtifactForm uploading={uploading} onUpload={handleUpload} />
+          )}
+          {uploadError && <div className="empty-state error">{uploadError}</div>}
+        </section>
 
-      <section className="card section section--grow">
-        <div className="section-title">Artifacts</div>
-        {artifactsLoading ? (
-          <SkeletonRows count={4} />
-        ) : artifactsError ? (
-          <div className="empty-state error">{artifactsError}</div>
-        ) : !selectedFolderId ? (
-          <div className="empty-state">Pick a folder to see its artifacts.</div>
-        ) : artifacts.length === 0 ? (
-          <div className="empty-state">Upload your first doc to start ingestion.</div>
-        ) : (
-          <ArtifactsTable
-            artifacts={artifacts}
-            onSelect={setDrawerArtifact}
-            onDelete={handleDelete}
-          />
-        )}
-      </section>
+        <section className="card section section--grow">
+          <div className="section-title">Artifacts</div>
+          {artifactsLoading ? (
+            <SkeletonRows count={4} />
+          ) : artifactsError ? (
+            <div className="empty-state error">{artifactsError}</div>
+          ) : !selectedFolderId ? (
+            <div className="empty-state">Pick a folder to see its artifacts.</div>
+          ) : artifacts.length === 0 ? (
+            <div className="empty-state">Upload your first doc to start ingestion.</div>
+          ) : (
+            <ArtifactsTable
+              artifacts={artifacts}
+              onSelect={setDrawerArtifact}
+              onDelete={handleDelete}
+            />
+          )}
+        </section>
+      </div>
 
       {drawerArtifact && (
         <ArtifactDetailDrawer

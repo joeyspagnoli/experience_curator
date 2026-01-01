@@ -21,6 +21,8 @@
 body {
   margin: 0;
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: radial-gradient(circle at top left, #fff8f1 0%, var(--bg) 45%, #f2ede6 100%);
   color: var(--ink);
   font-family: var(--font-sans);
@@ -33,14 +35,17 @@ a {
 
 #root {
   min-height: 100vh;
+  height: 100%;
 }
 
 .app-shell {
   min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem 2.2rem 2.5rem;
+  overflow: hidden;
 }
 
 .app-header {
@@ -162,6 +167,8 @@ a {
   grid-template-columns: 1.1fr 1.6fr 1.2fr;
   gap: 1.2rem;
   align-items: stretch;
+  flex: 1;
+  min-height: 0;
   animation: fadeIn 0.6s ease;
 }
 
@@ -172,7 +179,8 @@ a {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  min-height: 72vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .pane-content {
@@ -180,11 +188,23 @@ a {
   flex-direction: column;
   gap: 1rem;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .pane-content--full {
   max-width: 1100px;
   margin: 0 auto;
+}
+
+.pane-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
 }
 
 .pane-header h2 {
@@ -579,12 +599,16 @@ textarea {
   flex-direction: column;
   gap: 1rem;
   flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
 }
 
 .composer {
   display: flex;
   gap: 0.6rem;
   align-items: flex-end;
+  flex-shrink: 0;
 }
 
 .answer-card__question {
@@ -592,11 +616,13 @@ textarea {
   gap: 0.6rem;
   align-items: center;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .answer-card__answer {
   margin-top: 0.8rem;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .answer-card__meta {
@@ -621,6 +647,10 @@ textarea {
 .citations ul {
   padding-left: 1rem;
   margin: 0.4rem 0 0;
+}
+
+.citations li {
+  overflow-wrap: anywhere;
 }
 
 .table {
@@ -690,6 +720,7 @@ textarea {
   border-radius: 12px;
   overflow: auto;
   font-size: 0.78rem;
+  max-width: 100%;
 }
 
 .empty-state {
@@ -709,6 +740,7 @@ textarea {
 .mono {
   font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
 }
 
 .link {
@@ -775,6 +807,16 @@ textarea {
 
   .pane {
     min-height: auto;
+  }
+
+  body {
+    overflow: auto;
+    height: auto;
+  }
+
+  .app-shell {
+    height: auto;
+    overflow: visible;
   }
 
   .app-header {
