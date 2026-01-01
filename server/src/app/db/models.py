@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Float,
+    Boolean,
     Index,
     Integer,
     PrimaryKeyConstraint,
@@ -186,6 +187,16 @@ class Run(Base):
         JSONB, server_default=text("'[]'::jsonb"), nullable=False
     )
 
+    question_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    citations_mode: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    top_k: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    min_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    no_evidence: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+
     model_name: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     embed_model: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -212,5 +223,28 @@ class RunRetrievedChunk(Base):
     )
 
     score: Mapped[float] = mapped_column(Float, nullable=False)
+
+    rank: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class RunCitation(Base):
+    __tablename__ = "run_citations"
+    __table_args__ = (
+        PrimaryKeyConstraint("trace_id", "rank", name="run_citations_pkey"),
+        UniqueConstraint("trace_id", "chunk_id", name="rc_trace_id_chunk_id_key"),
+        Index("rc_trace_id_idx", "trace_id"),
+    )
+
+    trace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("runs.trace_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    chunk_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("chunks.chunk_id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     rank: Mapped[int] = mapped_column(Integer, nullable=False)

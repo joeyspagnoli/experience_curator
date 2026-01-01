@@ -65,8 +65,7 @@ used.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/runs/{trace_id}` | Fetch run metadata |
-| GET | `/runs/{trace_id}/retrieved-chunks` | Fetch retrieved chunks for a run |
+| GET | `/runs/{trace_id}` | Fetch run metadata + retrieved chunks + citations |
 
 ## Notes
 

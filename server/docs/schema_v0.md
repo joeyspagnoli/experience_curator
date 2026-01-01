@@ -151,6 +151,13 @@ Columns:
 - model_name (text, NULL) -- the chat model used for generation
 - embed_model (text, NULL) -- e.g. "text-embedding-3-small"
 
+Notes:
+
+- `no_evidence` currently reflects retrieval strength (top score vs min score) at retrieval time.
+  If generation later fails citation validation, the response may still return no-evidence even
+  though the run row shows `no_evidence = false`. If you need final-response status, update the
+  run after generation.
+
 ---
 
 ### 6) run_retrieved_chunks
