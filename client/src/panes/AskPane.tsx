@@ -172,13 +172,15 @@ export function AskPane({ onTraceCapture, activeTraceId }: AskPaneProps) {
                   <div className="empty-state">No folders yet.</div>
                 ) : (
                   folders.map((folder) => (
-                    <label key={folder.id} className="checkbox">
+                    <label key={folder.id} className="scope-option">
                       <input
                         type="checkbox"
                         checked={scopeIds.includes(folder.id)}
                         onChange={() => toggleScope(folder.id)}
                       />
-                      <span>{folder.name}</span>
+                      <span className="scope-option__label" title={folder.name}>
+                        {folder.name}
+                      </span>
                     </label>
                   ))
                 )}
