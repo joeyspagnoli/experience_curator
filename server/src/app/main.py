@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 
 from .config import APP_ENV
 from .middleware import TraceMiddleware
@@ -18,6 +19,14 @@ from .api.runs import router as runs_router
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
+# Allow the local Vite dev server to call the API during development.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(TraceMiddleware)
 app.include_router(folders_router)
 app.include_router(artifacts_router)
