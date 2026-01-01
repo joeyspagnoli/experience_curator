@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchJson, isApiError } from '../lib/api'
-import type { DebugRun } from '../lib/types'
+import type { ApiList, Artifact, DebugRun, Folder } from '../lib/types'
 import { clampText } from '../lib/utils'
 
 type DebugPaneProps = {
@@ -15,6 +15,9 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [chunkModalId, setChunkModalId] = useState<string | null>(null)
+  const [folderMap, setFolderMap] = useState<Record<string, string>>({})
+  const [artifactMap, setArtifactMap] = useState<Record<string, string[]>>({})
+  const [indexLoading, setIndexLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -40,15 +43,76 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
     }
   }, [traceId])
 
+  useEffect(() => {
+    let alive = true
+    const loadIndex = async () => {
+      if (!traceId) return
+      setIndexLoading(true)
+      try {
+        const { data } = await fetchJson<ApiList<Folder>>('/folders')
+        if (!alive) return
+        const folders = data.items ?? []
+        const nextFolderMap: Record<string, string> = {}
+        folders.forEach((folder) => {
+          nextFolderMap[folder.id] = folder.name
+        })
+        setFolderMap(nextFolderMap)
+
+        const artifactEntries = await Promise.all(
+          folders.map(async (folder) => {
+            try {
+              const { data: artifactData } = await fetchJson<ApiList<Artifact>>(
+                `/folders/${folder.id}/artifacts`,
+              )
+              return (artifactData.items ?? []).map((artifact) => ({
+                filename: artifact.filename,
+                folderName: folder.name,
+              }))
+            } catch {
+              return []
+            }
+          }),
+        )
+
+        if (!alive) return
+        const nextArtifactMap: Record<string, string[]> = {}
+        artifactEntries.flat().forEach((entry) => {
+          if (!nextArtifactMap[entry.filename]) {
+            nextArtifactMap[entry.filename] = [entry.folderName]
+          } else if (!nextArtifactMap[entry.filename].includes(entry.folderName)) {
+            nextArtifactMap[entry.filename].push(entry.folderName)
+          }
+        })
+        setArtifactMap(nextArtifactMap)
+      } finally {
+        if (alive) setIndexLoading(false)
+      }
+    }
+
+    loadIndex()
+    return () => {
+      alive = false
+    }
+  }, [traceId])
+
   const scopeLabel = useMemo(() => {
     if (!run?.scope_folder_ids || run.scope_folder_ids.length === 0) {
       return 'All folders'
     }
-    return run.scope_folder_ids.join(', ')
-  }, [run])
+    return run.scope_folder_ids
+      .map((folderId) => folderMap[folderId] ?? folderId)
+      .join(', ')
+  }, [run, folderMap])
 
   const verification = run?.verification
   const verificationStatus = verification?.status ?? 'unknown'
+  const evidenceLabel = (filename?: string, fallback?: string) => {
+    const resolved = filename ?? fallback ?? '—'
+    const folderNames = filename ? artifactMap[filename] : undefined
+    if (!folderNames || folderNames.length === 0) return resolved
+    const suffix = folderNames.length > 1 ? ` +${folderNames.length - 1}` : ''
+    return `${folderNames[0]}${suffix}/${resolved}`
+  }
 
   if (!traceId) {
     return (
@@ -120,12 +184,24 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
             <div className="section-title">Evidence</div>
             {run.retrieved && run.retrieved.length > 0 ? (
               <div className="table">
+                <div className="table-row table-row--header">
+                  <div className="muted">Chunk</div>
+                  <div className="muted">Score</div>
+                  <div className="muted">Path</div>
+                  <div className="muted">Snippet</div>
+                  <div className="muted">Open</div>
+                </div>
                 {run.retrieved.map((chunk) => (
                   <div key={chunk.chunk_id} className="table-row">
                     <div className="mono">{chunk.chunk_id.slice(0, 8)}</div>
                     <div>{chunk.score.toFixed(3)}</div>
-                    <div>{chunk.artifact_filename ?? chunk.artifact_path ?? '—'}</div>
-                    <div className="muted">{clampText(chunk.snippet ?? '', 90)}</div>
+                    <div
+                      className="path-label"
+                      title={chunk.artifact_filename ?? chunk.artifact_path ?? '—'}
+                    >
+                      {evidenceLabel(chunk.artifact_filename, chunk.artifact_path)}
+                    </div>
+                    <div className="muted">{clampText(chunk.snippet ?? '', 120)}</div>
                     <button
                       type="button"
                       className="link"
@@ -137,8 +213,11 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">No retrieved chunks.</div>
+              <div className="empty-state">
+                No retrieved chunks yet. Upload more artifacts or widen the scope.
+              </div>
             )}
+            {indexLoading && <div className="muted">Indexing folders…</div>}
           </section>
 
           <section className="card section">
