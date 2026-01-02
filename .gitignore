@@ -1,0 +1,27 @@
+# Python
+**/__pycache__/
+**/*.pyc
+server/.venv/
+
+# Env
+.env
+server/.env
+
+# OS
+.DS_Store
+pyrightconfig.json
+
+# postgres
+docker/data
+
+# local uploads
+server/storage/
+
+.npm-cache
+
+# client
+client/node_modules/
+client/dist/
+client/.vite/
+client/.env
+client/.env.*
