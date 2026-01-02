@@ -16,3 +16,12 @@ docker/data
 
 # local uploads
 server/storage/
+
+.npm-cache
+
+# client
+client/node_modules/
+client/dist/
+client/.vite/
+client/.env
+client/.env.*
