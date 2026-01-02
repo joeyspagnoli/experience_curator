@@ -212,3 +212,37 @@ async def upload_artifact(
         raise HTTPException(status_code=500, detail="Insert failed unexpectedly")
 
     return row
+
+
+@router.get(
+    "/artifacts/{artifact_id}/chunks",
+    description="List chunks for a specific artifact.",
+)
+async def get_artifact_chunks(artifact_id: str):
+    try:
+        artifact_uuid = uuid.UUID(artifact_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400, detail="artifact_id must be a valid UUID"
+        ) from exc
+
+    exists = fetch_one("SELECT id FROM artifacts WHERE id = %s;", (artifact_uuid,))
+    if not exists:
+        raise HTTPException(status_code=404, detail="artifact not found")
+
+    rows = fetch_all(
+        """
+        SELECT
+            c.chunk_id,
+            c.chunk_index,
+            left(c.text, 500) AS snippet,
+            c.locator,
+            c.created_at
+        FROM chunks c
+        WHERE c.artifact_id = %s
+        ORDER BY c.chunk_index ASC;
+        """,
+        (artifact_uuid,),
+    )
+
+    return {"items": rows}

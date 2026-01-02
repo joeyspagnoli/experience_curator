@@ -265,6 +265,18 @@ function ChunkViewer({ chunkId, onClose }: { chunkId: string; onClose: () => voi
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.body.classList.add('modal-open')
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.classList.remove('modal-open')
+    }
+  }, [onClose])
+
+  useEffect(() => {
     let alive = true
     const load = async () => {
       setLoading(true)
@@ -294,7 +306,7 @@ function ChunkViewer({ chunkId, onClose }: { chunkId: string; onClose: () => voi
             <div className="drawer__title">Chunk {chunkId}</div>
             <div className="muted">Source lookup</div>
           </div>
-          <button type="button" className="icon-button" onClick={onClose}>
+          <button type="button" className="button button--ghost button--compact" onClick={onClose}>
             Close
           </button>
         </header>

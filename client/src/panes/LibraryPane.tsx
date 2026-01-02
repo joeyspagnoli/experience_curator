@@ -282,6 +282,14 @@ function ArtifactsTable({
   onSelect: (artifact: Artifact) => void
   onDelete: (artifactId: string) => void
 }) {
+  const stageLabel = (artifact: Artifact) => {
+    if (artifact.ingestion_stage) return artifact.ingestion_stage
+    if (artifact.ingestion_status === 'succeeded') return 'completed'
+    if (artifact.ingestion_status === 'failed') return 'failed'
+    if (artifact.ingestion_status === 'running') return 'processing'
+    return 'pending'
+  }
+
   return (
     <div className="artifacts">
       {artifacts.map((artifact) => (
@@ -293,7 +301,7 @@ function ArtifactsTable({
           >
             <div>
               <div className="artifact-name">{artifact.filename}</div>
-              <div className="muted">{artifact.ingestion_stage ?? 'pending stage'}</div>
+              <div className="muted">{stageLabel(artifact)}</div>
             </div>
             <div className="artifact-meta">
               <span className={`status status--${artifact.ingestion_status ?? 'queued'}`}>
@@ -323,6 +331,18 @@ function ArtifactDetailDrawer({
   artifact: Artifact
   onClose: () => void
 }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.body.classList.add('modal-open')
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.classList.remove('modal-open')
+    }
+  }, [onClose])
+
   const status = artifact.ingestion_status ?? 'queued'
   const preview = artifact.extracted_text_preview
 
@@ -336,7 +356,7 @@ function ArtifactDetailDrawer({
               Status: {status} · Stage: {artifact.ingestion_stage ?? 'pending'}
             </div>
           </div>
-          <button type="button" className="icon-button" onClick={onClose}>
+          <button type="button" className="button button--ghost button--compact" onClick={onClose}>
             Close
           </button>
         </header>
