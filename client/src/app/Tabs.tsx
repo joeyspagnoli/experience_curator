@@ -10,6 +10,7 @@ type TabConfig = {
   icon?: ReactNode
 }
 
+// Single source of truth for the tab strip labels.
 const TABS: TabConfig[] = [
   { key: 'ask', label: 'Ask', subtitle: 'Grounded Q&A' },
   { key: 'resume', label: 'Resume Tailor', subtitle: 'Bullet upgrades' },

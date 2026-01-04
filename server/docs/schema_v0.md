@@ -1,6 +1,7 @@
 # Schema v0 — ExperienceCurator.ai (Folders → Artifacts → Chunks → Embeddings + Runs)
 
-This doc is the **v0 database blueprint** for ExperienceCurator.ai.
+This doc is the **v0 database blueprint** for ExperienceCurator.ai, aligned with
+`server/src/app/db/models.py`.
 
 ## Why this schema exists (core invariants)
 
@@ -22,7 +23,7 @@ This schema guarantees:
 
 folders (1) ────< artifacts (many) ────< chunks (many) ────1 embeddings
 |
-└──────────────< run_retrieved_chunks >────────────── runs
+└──────────────< run_retrieved_chunks >────────────── runs ────< run_citations
 
 ---
 
@@ -72,11 +73,18 @@ Columns:
 - folder_id (uuid, NOT NULL, FK → folders.id ON DELETE CASCADE)
 - filename (text, NOT NULL)
 - storage_path (text, NOT NULL) -- where it lives on disk / local storage
+- source_url (text, NULL) -- optional external source
 - content_type (text, NULL) -- e.g., "text/markdown", "application/pdf"
+- file_hash (text, NULL) -- used for dedupe in uploads
+- file_size (int, NULL)
 - artifact_kind (text, NOT NULL) -- 'doc' | 'code' | 'repo_map' | 'resume'
 - ingestion_status (text, NOT NULL) -- 'queued' | 'running' | 'succeeded' | 'failed'
+- ingestion_stage (text, NULL) -- 'extract' | 'chunk' | 'embed'
 - error_message (text, NULL)
 - extracted_text_preview (text, NULL) -- optional: quick UI preview
+- chunker_name (text, NULL)
+- chunker_params (jsonb, NULL)
+- embed_model (text, NULL)
 - created_at (timestamptz, NOT NULL, default now())
 - updated_at (timestamptz, NOT NULL, default now())
 
@@ -84,6 +92,7 @@ Constraints:
 
 - CHECK (ingestion_status IN ('queued','running','succeeded','failed'))
 - CHECK (artifact_kind IN ('doc','code','repo_map','resume'))
+- CHECK (ingestion_stage IN ('extract','chunk','embed'))
 
 Indexes (minimal):
 
@@ -101,6 +110,7 @@ Columns:
 - artifact_id (uuid, NOT NULL, FK → artifacts.id ON DELETE CASCADE)
 - chunk_index (int, NOT NULL) -- stable ordering within an artifact
 - text (text, NOT NULL) -- the snippet
+- chunk_hash (text, NULL) -- content hash for dedupe/debug
 - locator (jsonb, NULL) -- optional: { "heading": "...", "start": 123, "end": 456 }
 - created_at (timestamptz, NOT NULL, default now())
 
@@ -111,6 +121,7 @@ Constraints:
 Indexes (minimal):
 
 - INDEX chunks_artifact_id_idx ON chunks(artifact_id)
+- INDEX chunks_artifact_id_chunk_hash_idx ON chunks(artifact_id, chunk_hash)
 
 ---
 
@@ -148,12 +159,17 @@ Columns:
 - kind (text, NOT NULL) -- e.g. 'ask'
 - created_at (timestamptz, NOT NULL, default now())
 - scope_folder_ids (jsonb, NOT NULL, default '[]'::jsonb)
-- model_name (text, NULL) -- the chat model used for generation
+- question_text (text, NULL)
+- citations_mode (text, NULL) -- 'on' | 'brainstorm'
+- top_k (int, NULL)
+- min_score (double precision, NULL)
+- no_evidence (bool, NULL)
+- model_name (text, NULL) -- chat model used for generation
 - embed_model (text, NULL) -- e.g. "text-embedding-3-small"
 
 Notes:
 
-- `no_evidence` currently reflects retrieval strength (top score vs min score) at retrieval time.
+- `no_evidence` reflects retrieval strength (top score vs min score) at retrieval time.
   If generation later fails citation validation, the response may still return no-evidence even
   though the run row shows `no_evidence = false`. If you need final-response status, update the
   run after generation.
@@ -174,7 +190,7 @@ Columns:
 Constraints:
 
 - PRIMARY KEY (trace_id, rank) -- rank unique per run
-- (Optional) UNIQUE (trace_id, chunk_id) -- prevent duplicates per run
+- UNIQUE (trace_id, chunk_id) -- prevent duplicates per run
 
 Indexes:
 
@@ -182,12 +198,33 @@ Indexes:
 
 ---
 
+### 7) run_citations
+
+Purpose: store final, validated citations for a run.
+
+Columns:
+
+- trace_id (uuid, NOT NULL, FK → runs.trace_id ON DELETE CASCADE)
+- chunk_id (uuid, NOT NULL, FK → chunks.chunk_id ON DELETE CASCADE)
+- rank (int, NOT NULL)
+
+Constraints:
+
+- PRIMARY KEY (trace_id, rank)
+- UNIQUE (trace_id, chunk_id)
+
+Indexes:
+
+- INDEX rc_trace_id_idx ON run_citations(trace_id)
+
+---
+
 ## Required “citation lookup” query (concept)
 
 Given a chunk_id, you must be able to fetch:
 
-- chunk text
-- file name + storage path
+- chunk text + locator
+- artifact filename + storage path
 - folder name
 
 Join chain:
@@ -206,6 +243,5 @@ Join chain:
 5. Create embeddings (FK → chunks)
 6. Create runs
 7. Create run_retrieved_chunks (FK → runs, chunks)
-8. Add indexes + CHECK constraints
-
----
+8. Create run_citations (FK → runs, chunks)
+9. Add indexes + CHECK constraints

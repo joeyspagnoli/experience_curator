@@ -4,7 +4,9 @@ type JsonInit = Omit<RequestInit, 'body' | 'headers'> & {
   headers?: HeadersInit
 }
 
+// Base URL for the API (empty string means "same origin").
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+// Header the backend uses to surface trace IDs for debugging.
 const TRACE_HEADER = 'x-trace-id'
 
 export class ApiError extends Error {

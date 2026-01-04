@@ -16,6 +16,7 @@ export function AppShell() {
   const [healthStatus, setHealthStatus] = useState<'loading' | 'ok' | 'error'>('loading')
   const [healthError, setHealthError] = useState<string | null>(null)
 
+  // One-time ping to show API availability and environment in the header.
   useEffect(() => {
     let alive = true
     const loadHealth = async () => {
@@ -62,6 +63,7 @@ export function AppShell() {
         </div>
       </header>
 
+      {/* Three-pane workspace: library (left), work area (middle), debug (right). */}
       <main className="app-body">
         <section className="pane pane--library">
           <LibraryPane onTraceCapture={setActiveTraceId} />

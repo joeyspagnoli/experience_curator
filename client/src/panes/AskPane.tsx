@@ -32,6 +32,7 @@ export function AskPane({ onTraceCapture, activeTraceId }: AskPaneProps) {
   const [citationsMode, setCitationsMode] = useState<'on' | 'brainstorm'>('on')
   const [topK, setTopK] = useState(DEFAULT_TOP_K)
   const [question, setQuestion] = useState('')
+  // Reverse-chronological list of Q&A turns rendered in the thread.
   const [turns, setTurns] = useState<AskTurn[]>([])
   const [loadingFolders, setLoadingFolders] = useState(true)
   const [scopeOpen, setScopeOpen] = useState(false)
@@ -72,6 +73,7 @@ export function AskPane({ onTraceCapture, activeTraceId }: AskPaneProps) {
     })
   }
 
+  // Optimistically add a pending turn, then replace it with the API response.
   const handleSend = async () => {
     const trimmed = question.trim()
     if (!trimmed) return

@@ -3,6 +3,7 @@ import { fetchJson, isApiError, uploadMultipart } from '../lib/api'
 import type { ApiList, Artifact, Folder } from '../lib/types'
 import { formatDate } from '../lib/utils'
 
+// Persist the last selected folder so refreshes keep context.
 const STORAGE_KEY = 'ec:selectedFolderId'
 
 type LibraryPaneProps = {
@@ -25,6 +26,7 @@ export function LibraryPane({ onTraceCapture }: LibraryPaneProps) {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [createName, setCreateName] = useState('')
 
+  // Poll while any artifact is still ingesting.
   const shouldPoll = useMemo(
     () => artifacts.some((artifact) => ['queued', 'running'].includes(String(artifact.ingestion_status))),
     [artifacts],
@@ -69,16 +71,19 @@ export function LibraryPane({ onTraceCapture }: LibraryPaneProps) {
     }
   }
 
+  // Initial folder load on mount.
   useEffect(() => {
     loadFolders()
   }, [])
 
+  // When the selected folder changes, persist it and refresh artifacts.
   useEffect(() => {
     if (!selectedFolderId) return
     localStorage.setItem(STORAGE_KEY, selectedFolderId)
     loadArtifacts(selectedFolderId)
   }, [selectedFolderId])
 
+  // Keep refreshing artifacts while ingestion is running.
   useEffect(() => {
     if (!selectedFolderId || !shouldPoll) return
     const interval = setInterval(() => {

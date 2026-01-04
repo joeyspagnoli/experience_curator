@@ -19,6 +19,7 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
   const [artifactMap, setArtifactMap] = useState<Record<string, string[]>>({})
   const [indexLoading, setIndexLoading] = useState(false)
 
+  // Load the run details for the active trace id.
   useEffect(() => {
     let alive = true
     const loadRun = async () => {
@@ -43,6 +44,7 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
     }
   }, [traceId])
 
+  // Load folder + artifact names to make evidence labels readable.
   useEffect(() => {
     let alive = true
     const loadIndex = async () => {
@@ -114,6 +116,7 @@ export function DebugPane({ traceId, fullWidth = false }: DebugPaneProps) {
     return `${folderNames[0]}${suffix}/${resolved}`
   }
 
+  // Without a trace id, show the empty state instead of querying the API.
   if (!traceId) {
     return (
       <div className="pane-content">
@@ -264,6 +267,7 @@ function ChunkViewer({ chunkId, onClose }: { chunkId: string; onClose: () => voi
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Modal UX: close on Esc and prevent background scroll while open.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
