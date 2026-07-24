@@ -149,6 +149,7 @@ def _retrieve_chunks(
 def _record_run(
     *,
     trace_id: uuid.UUID,
+    kind: str = "ask",
     scope_folder_ids: list[uuid.UUID],
     question_text: str,
     citations_mode: Literal["on", "brainstorm"],
@@ -181,7 +182,7 @@ def _record_run(
             """,
             (
                 trace_id,
-                "ask",
+                kind,
                 scope_payload,
                 question_text,
                 citations_mode,
