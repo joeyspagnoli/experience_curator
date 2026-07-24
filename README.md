@@ -258,4 +258,4 @@ See [`server/docs/`](server/docs/) for route-by-route API documentation and the 
 - Client: React 19, TypeScript (strict), Vite 7
 - Tests: pytest, hermetic (no network, no database)
 
-License: TBD
+License: [MIT](LICENSE)
