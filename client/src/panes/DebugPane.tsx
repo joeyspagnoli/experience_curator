@@ -317,7 +317,7 @@ function ChunkViewer({ chunkId, onClose }: { chunkId: string; onClose: () => voi
 
         {loading && <div className="empty-state">Loading chunk…</div>}
         {error && <div className="empty-state error">{error}</div>}
-        {payload && !loading && !error && (
+        {payload != null && !loading && !error && (
           <pre className="code-block">{JSON.stringify(payload, null, 2)}</pre>
         )}
       </div>

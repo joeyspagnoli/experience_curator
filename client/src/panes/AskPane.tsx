@@ -251,7 +251,7 @@ function AnswerCard({ turn }: { turn: AskTurn }) {
       {turn.status === 'error' && (
         <div className="answer-card__error">
           <strong>{turn.error}</strong>
-          {turn.errorPayload && (
+          {turn.errorPayload != null && (
             <pre className="code-block">{JSON.stringify(turn.errorPayload, null, 2)}</pre>
           )}
         </div>

@@ -54,6 +54,22 @@ export type AskResponse = {
   warning?: string | null
 }
 
+/** One grounded bullet suggestion from POST /resume-tailor. */
+export type ResumeSuggestion = {
+  bullet: string
+  rationale: string
+  citations: EvidenceChunk[]
+}
+
+/** API response from POST /resume-tailor. */
+export type ResumeTailorResponse = {
+  trace_id: string
+  no_evidence: boolean
+  suggestions: ResumeSuggestion[]
+  evidence: EvidenceChunk[]
+  message?: string | null
+}
+
 /** Shape of GET /runs/{trace_id} responses. */
 export type DebugRun = {
   trace_id: string
